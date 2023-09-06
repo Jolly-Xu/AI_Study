@@ -8,16 +8,15 @@ train_X = [[]]
 train_Y = []
 padding_size = 10
 UNK, PAD = '<UNK>', '<PAD>'
-vocab_size = 0
-embedding_dim = 0
+
 
 # 网络模型
 class LSTM(nn.Module):
-    def __int__(self, input_size, hidden_size, layers, output_size, vocab_size, embedding_dim):
+    def __int__(self, input_size, hidden_size, layers, output_size, vocabSize, embeddingDim):
         super().__init__()
         self.hidden_size = hidden_size
         self.num_layers = layers
-        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.embedding = nn.Embedding(vocabSize, embeddingDim)
         self.Lstm = nn.LSTM(input_size, hidden_size, layers, bidirectional=True, batch_first=True)
         self.fc = nn.Linear(hidden_size * 2, output_size)
 
@@ -53,10 +52,11 @@ class LSTM(nn.Module):
 
 # 读取词向量
 embedding_predict = torch.tensor \
-            (np.load("./data/embedding_Tencent.npz") \
-             ["embeddings"].astype('float32'))
+    (np.load("./data/embedding_Tencent.npz") \
+         ["embeddings"].astype('float32'))
+
+# 词向量大小
 vocab_size = len(embedding_predict)
 embedding_dim = len(embedding_predict[0])
 
 
-print("1111")
