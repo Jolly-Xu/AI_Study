@@ -7,25 +7,24 @@ import pickle as pk
 train_X = []
 train_Y = []
 padding_size = 10
-UNK, PAD = '<UNK>', '<PAD>'
+UNK, PAD = '<', '>'
 
 
 # 网络模型
 class LSTM(nn.Module):
-    def __int__(self, input_size, hidden_size, layers, output_size, vocabSize, embeddingDim):
+    def __init__(self, input_size, hidden_size, layers, output_size, vocabSize, embeddingDim):
         super().__init__()
         self.hidden_size = hidden_size
         self.num_layers = layers
         self.embedding = nn.Embedding(vocabSize, embeddingDim)
         self.Lstm = nn.LSTM(input_size, hidden_size, layers, bidirectional=True, batch_first=True)
         self.fc = nn.Linear(hidden_size * 2, output_size)
-        self.device = torch.device("cuda")
+        self.device = torch.device("cuda") if torch.cuda.is_available else torch.device("cpu")
 
     def forward(self, train_data):
-        h0 = torch.zeros(self.num_layers, self.hidden_size).to(self.device)
-        c0 = torch.zeros(self.num_layers, self.hidden_size).to(self.device)
+        conf = torch.to(self.device)
         train_data = self.embedding(train_data)
-        out, _ = self.lstm(train_data, (h0, c0))
+        out, _ = self.lstm(train_data,conf)
         out = self.fc(out[-1, :, :])
         return out
 
@@ -37,7 +36,10 @@ with open("./data/vocab.pkl", "rb") as fp:
     pkl = pk.load(fp)
 
 with open("./data/train.txt", encoding="utf-8") as f:
+    k = 0
     for line in f:
+        if k == 10:
+            break
         train_arr = line.strip().split("\t")
         # 对文字进行分字处理
         temp = list(train_arr[0])
@@ -69,3 +71,38 @@ embedding_predict = torch.tensor \
 # 词向量大小
 vocab_size = len(embedding_predict)
 embedding_dim = len(embedding_predict[0])
+
+inputSize = embedding_dim
+hidden = 64
+Lstm_layers = 1
+outputSize = 10
+batch_size = 64
+epochs = 100
+start = 0
+total_all = len(train_X)
+
+# 生成模型
+model = LSTM(inputSize,hidden,Lstm_layers,outputSize,vocab_size,embedding_dim)
+
+# 创建优化器
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+
+for i in epochs:
+    # 还得补一个for循环
+    end = start+batch_size*(i+1)
+    end = end if end < total_all else total_all
+    batch_data = train_X[start:end]
+    start = end
+    output = model(batch_data)
+    loss = criterion(output, y)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    
+
+
+
+
+print(model)
+

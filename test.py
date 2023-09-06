@@ -24,10 +24,11 @@ hidden_size = 20  # 隐藏层特征数
 num_layers = 2  # LSTM层数
 output_size = 2  # 输出类别数
 batch_size = 3  # 批大小
-sequence_length = 5  # 序列长度
+sequence_length = 2  # 序列长度
 
 # 随机生成一些数据
 x = torch.randn(sequence_length, batch_size, input_size)
+print(x.shape)
 y = torch.randint(output_size, (batch_size,))
 
 # 定义优化器和损失函数
